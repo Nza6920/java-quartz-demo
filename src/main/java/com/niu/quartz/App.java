@@ -20,6 +20,7 @@ public class App {
         JobDetail jobDetail = JobBuilder.newJob(MyJob.class)
                 .withIdentity("MyJob-1", "MyGroup-1")
                 .usingJobData("name", "James")
+                .usingJobData("count", 1)
                 .build();
 
         // 创建触发器

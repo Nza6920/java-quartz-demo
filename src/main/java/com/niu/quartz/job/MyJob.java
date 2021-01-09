@@ -13,7 +13,7 @@ import java.util.Calendar;
  * 默认每次创建一个新的 Job 对象
  *
  * '@DisallowConcurrentExecution' 禁止并发任务
- *
+ * '@PersistJobDataAfterExecution' 更新jobDataMap
  *
  * @author [nza]
  * @version 1.0 2021/1/7
@@ -21,9 +21,12 @@ import java.util.Calendar;
  */
 @Data
 @DisallowConcurrentExecution
+@PersistJobDataAfterExecution
 public class MyJob implements Job {
 
     private String name;
+
+    private int count;
 
     @Override
     public void execute(JobExecutionContext context) {
@@ -42,6 +45,11 @@ public class MyJob implements Job {
         // 第二 种获取 jobData 的方法
 //        System.out.printf("我是: %s", this.name);
 //        System.out.println();
+
+        // 更新 dataMap
+        count++;
+        dataMap.put("count", count);
+        System.out.println("更新count: " + count);
 
         try {
             Thread.sleep(7000);
