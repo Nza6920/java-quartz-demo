@@ -6,6 +6,6 @@ java api 集成 quartz 的 demo
 - Misfire 机制
 - 避免并发任务
 - JobDataMap映射方式
-- Corn 表达式触发任务 
+- Cron 表达式触发任务 
 
 
