@@ -1,28 +1,25 @@
 package com.niu.quartz.job;
 
 import lombok.Data;
-import lombok.SneakyThrows;
 import org.quartz.*;
 
 import java.time.LocalTime;
-import java.util.Calendar;
 
 /**
- * 自定义定时任务
+ * 测试 JobDataMap
  *
- * 默认每次创建一个新的 Job 对象
  *
  * '@DisallowConcurrentExecution' 禁止并发任务
  * '@PersistJobDataAfterExecution' 更新jobDataMap
  *
  * @author [nza]
- * @version 1.0 2021/1/7
- * @createTime 21:30
+ * @version 1.0 2021/1/10
+ * @createTime 12:53
  */
 @Data
 @DisallowConcurrentExecution
 @PersistJobDataAfterExecution
-public class MyJob implements Job {
+public class DataMapJob implements Job {
 
     private String name;
 
@@ -30,34 +27,26 @@ public class MyJob implements Job {
 
     @Override
     public void execute(JobExecutionContext context) {
+        System.out.println("---------------------------开始执行任务-------------------------");
 
         System.out.println("当前线程: " + Thread.currentThread().getName());
         System.out.println(LocalTime.now());
 
         JobDataMap dataMap = context.getJobDetail().getJobDataMap();
 
-        String name = (String) dataMap.get("name");
-
         // 第一种获取 jobData 的方法
+        String name = (String) dataMap.get("name");
         System.out.printf("我是: %s", name);
         System.out.println();
 
         // 第二 种获取 jobData 的方法
-//        System.out.printf("我是: %s", this.name);
-//        System.out.println();
+        System.out.printf("我是: %s", this.name);
+        System.out.println();
 
-        // 更新 dataMap
-        count++;
-        dataMap.put("count", count);
+        // todo: 更新 dataMap, 需要配合 PersistJobDataAfterExecution 注解才能生效
+        dataMap.put("count", ++count);
         System.out.println("更新count: " + count);
 
-        try {
-            Thread.sleep(7000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            System.out.println("任务执行完毕");
-            System.out.println("----------------------------------------------------");
-        }
+        System.out.println("---------------------------任务执行完毕-------------------------");
     }
 }
