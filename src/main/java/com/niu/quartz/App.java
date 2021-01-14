@@ -1,6 +1,7 @@
 package com.niu.quartz;
 
 import com.niu.quartz.job.*;
+import com.niu.quartz.listener.MyJobListener;
 import com.niu.quartz.listener.MyTriggerListener;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
@@ -30,7 +31,9 @@ public class App {
 
 //        misfireJobConfig(scheduler);
 
-        triggerListenerJobConfig(scheduler);
+//        triggerListenerJobConfig(scheduler);
+
+        jobListenerJobConfig(scheduler);
 
         Thread.sleep(600000);
 
@@ -191,4 +194,27 @@ public class App {
         scheduler.scheduleJob(jobDetail, trigger);
     }
 
+    private static void jobListenerJobConfig(Scheduler scheduler) throws SchedulerException {
+
+        // 创建 jobDetail
+        JobDetail jobDetail = JobBuilder.newJob(TriggerListenerJob.class)
+                .withIdentity("JobListenerJob-1", "MyGroup-1")
+                .build();
+
+        // 创建触发器
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .startNow()
+                .withSchedule(
+                        CronScheduleBuilder
+                                .cronSchedule("0/5 * * * * ?")
+                                .withMisfireHandlingInstructionIgnoreMisfires()
+                )
+                .build();
+
+        // 添加 Trigger 的监听器
+        scheduler.getListenerManager().addJobListener(new MyJobListener());
+
+        // 连接 jobDetail 与 trigger
+        scheduler.scheduleJob(jobDetail, trigger);
+    }
 }
