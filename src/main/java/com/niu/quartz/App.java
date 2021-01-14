@@ -2,6 +2,7 @@ package com.niu.quartz;
 
 import com.niu.quartz.job.*;
 import com.niu.quartz.listener.MyJobListener;
+import com.niu.quartz.listener.MySchedulerListener;
 import com.niu.quartz.listener.MyTriggerListener;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
@@ -19,7 +20,15 @@ public class App {
 
         // 启动定时任务
         Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-        scheduler.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("111");
+            try {
+                scheduler.shutdown();
+            } catch (SchedulerException e) {
+                e.printStackTrace();
+            }
+        }));
 
 //        dataMapJobConfig(scheduler);
 
@@ -33,9 +42,13 @@ public class App {
 
 //        triggerListenerJobConfig(scheduler);
 
-        jobListenerJobConfig(scheduler);
+//        jobListenerJobConfig(scheduler);
 
-        Thread.sleep(600000);
+        schedulerListenerJobConfig(scheduler);
+
+        scheduler.start();
+
+        Thread.sleep(60000);
 
         // 关闭定时任务
         scheduler.shutdown();
@@ -197,7 +210,7 @@ public class App {
     private static void jobListenerJobConfig(Scheduler scheduler) throws SchedulerException {
 
         // 创建 jobDetail
-        JobDetail jobDetail = JobBuilder.newJob(TriggerListenerJob.class)
+        JobDetail jobDetail = JobBuilder.newJob(JobListenerJob.class)
                 .withIdentity("JobListenerJob-1", "MyGroup-1")
                 .build();
 
@@ -213,6 +226,30 @@ public class App {
 
         // 添加 Trigger 的监听器
         scheduler.getListenerManager().addJobListener(new MyJobListener());
+
+        // 连接 jobDetail 与 trigger
+        scheduler.scheduleJob(jobDetail, trigger);
+    }
+
+    private static void schedulerListenerJobConfig(Scheduler scheduler) throws SchedulerException {
+
+        // 创建 jobDetail
+        JobDetail jobDetail = JobBuilder.newJob(SchedulerListenerJob.class)
+                .withIdentity("schedulerListenerJob-1", "MyGroup-1")
+                .build();
+
+        // 创建触发器
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .startNow()
+                .withSchedule(
+                        CronScheduleBuilder
+                                .cronSchedule("0/5 * * * * ?")
+                                .withMisfireHandlingInstructionIgnoreMisfires()
+                )
+                .build();
+
+        // 添加 Trigger 的监听器
+        scheduler.getListenerManager().addSchedulerListener(new MySchedulerListener());
 
         // 连接 jobDetail 与 trigger
         scheduler.scheduleJob(jobDetail, trigger);
